@@ -1,0 +1,7 @@
+<resources>
+    <!-- Shell theme for Compose — AppCompat base avoids platform theme lookup issues -->
+    <style name="Theme.Elisée2027" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+</resources>

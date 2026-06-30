@@ -1,0 +1,36 @@
+# ── Local config (secrets, SDK path) ──────────────────────────────────────
+local.properties
+keystore.properties
+
+# ── Build outputs ─────────────────────────────────────────────────────────
+/build
+app/build
+**/build/
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# ── Gradle ────────────────────────────────────────────────────────────────
+.gradle/
+gradle-app.setting
+!gradle-wrapper.jar
+.gradletasknamecache
+
+# ── Android Studio / IntelliJ ─────────────────────────────────────────────
+*.iml
+.idea/
+!.idea/codeStyles/
+!.idea/copyright/
+!.idea/inspectionProfiles/
+
+# ── NDK / CMake ────────────────────────────────────────────────────────────
+.externalNativeBuild/
+.cxx/
+
+# ── Captures & profiling ───────────────────────────────────────────────────
+/captures
+*.hprof
+
+# ── macOS ─────────────────────────────────────────────────────────────────
+.DS_Store
