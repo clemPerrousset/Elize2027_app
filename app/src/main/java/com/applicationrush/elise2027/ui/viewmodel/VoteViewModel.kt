@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.applicationrush.elise2027.data.model.CandidateUiState
 import com.applicationrush.elise2027.data.repository.VoteRepository
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -35,6 +36,9 @@ class VoteViewModel(app: Application) : AndroidViewModel(app) {
 
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
+
+    private val _cooldownSeconds = MutableStateFlow(0)
+    val cooldownSeconds: StateFlow<Int> = _cooldownSeconds.asStateFlow()
 
     init {
         refresh()
@@ -69,16 +73,29 @@ class VoteViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun vote(candidateId: String) {
+        if (_cooldownSeconds.value > 0) return
         if (_isMockMode.value) {
             val currentVoted = _candidates.value.firstOrNull { it.isVotedFor }?.info?.id
             val newVoted = if (currentVoted == candidateId) null else candidateId
             _candidates.update { list -> list.map { it.copy(isVotedFor = it.info.id == newVoted) } }
+            startCooldown()
             return
         }
         viewModelScope.launch {
             runCatching { repository.vote(candidateId) }
                 .onSuccess { refresh() }
                 .onFailure { _error.value = it.message }
+            startCooldown()
+        }
+    }
+
+    private fun startCooldown() {
+        viewModelScope.launch {
+            _cooldownSeconds.value = 2
+            delay(1_000)
+            _cooldownSeconds.value = 1
+            delay(1_000)
+            _cooldownSeconds.value = 0
         }
     }
 

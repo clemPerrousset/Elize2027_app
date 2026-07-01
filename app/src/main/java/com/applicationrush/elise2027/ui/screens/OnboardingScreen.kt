@@ -116,7 +116,7 @@ fun OnboardingScreen(onStart: () -> Unit) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                FeatureChip("🔒 Anonyme & sécurisé", Modifier.weight(1f))
+                FeatureChip("🔒 Pseudonyme & sécurisé", Modifier.weight(1f))
                 FeatureChip("🎁 Gratuit, sans pub", Modifier.weight(1f))
             }
 
@@ -135,8 +135,9 @@ fun OnboardingScreen(onStart: () -> Unit) {
             // ── Description ──────────────────────────────────────────────
             Text(
                 "Votez pour votre candidat préféré et découvrez en temps réel l'opinion " +
-                "des autres participants. Votre vote est lié à votre appareil — aucune " +
-                "donnée personnelle (nom, email, numéro) n'est collectée ni stockée.",
+                "des autres participants. Aucune donnée personnelle n'est collectée — " +
+                "votre vote est associé à un identifiant technique de votre appareil, " +
+                "non lié à votre identité.",
                 color = OnSurfaceMuted,
                 fontSize = 14.sp,
                 textAlign = TextAlign.Center,

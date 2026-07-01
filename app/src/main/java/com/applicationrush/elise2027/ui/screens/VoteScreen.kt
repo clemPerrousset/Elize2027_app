@@ -78,6 +78,7 @@ fun VoteScreen(viewModel: VoteViewModel) {
     val isLoading by viewModel.isLoading.collectAsState()
     val isMockMode by viewModel.isMockMode.collectAsState()
     val error by viewModel.error.collectAsState()
+    val cooldown by viewModel.cooldownSeconds.collectAsState()
 
     val snackbar = remember { SnackbarHostState() }
 
@@ -157,6 +158,30 @@ fun VoteScreen(viewModel: VoteViewModel) {
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
+            item {
+                AnimatedVisibility(
+                    visible = cooldown > 0,
+                    enter = fadeIn() + scaleIn(),
+                    exit = fadeOut(),
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Color(0xFF2A2A45))
+                            .padding(vertical = 10.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            text = "Attendez $cooldown…",
+                            color = OnSurfaceMuted,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                    }
+                }
+            }
             item { Spacer(Modifier.height(4.dp)) }
             itemsIndexed(
                 items = candidates,
@@ -165,6 +190,7 @@ fun VoteScreen(viewModel: VoteViewModel) {
                 CandidateCard(
                     candidate = candidate,
                     rank = index + 1,
+                    enabled = cooldown == 0,
                     onVote = { viewModel.vote(candidate.info.id) },
                     modifier = Modifier.animateItem(
                         fadeInSpec = tween(300),
@@ -182,6 +208,7 @@ fun VoteScreen(viewModel: VoteViewModel) {
 fun CandidateCard(
     candidate: CandidateUiState,
     rank: Int,
+    enabled: Boolean = true,
     onVote: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -207,7 +234,8 @@ fun CandidateCard(
             .clip(RoundedCornerShape(16.dp))
             .then(borderMod)
             .background(if (candidate.isVotedFor) partyColor.copy(alpha = 0.08f) else Surface)
-            .clickable { onVote() }
+            .alpha(if (enabled) 1f else 0.5f)
+            .clickable(enabled = enabled) { onVote() }
     ) {
         Column {
             Row(
