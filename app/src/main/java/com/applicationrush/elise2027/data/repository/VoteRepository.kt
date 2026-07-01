@@ -15,6 +15,7 @@ import com.applicationrush.elise2027.util.getPhoneId
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
 private val Context.dataStore by preferencesDataStore("elyze_prefs")
@@ -29,25 +30,43 @@ class VoteRepository(private val context: Context) {
     val onboardingDone: Flow<Boolean> = context.dataStore.data.map { it[KEY_ONBOARDING_DONE] ?: false }
     val votedCandidateId: Flow<String?> = context.dataStore.data.map { it[KEY_VOTED_FOR] }
 
+    // Candidates hardcoded in app — always available regardless of server state
+    fun baseUiList(votedId: String? = null): List<CandidateUiState> =
+        buildUiList(emptyMap(), votedId)
+
     suspend fun markOnboardingDone() {
         context.dataStore.edit { it[KEY_ONBOARDING_DONE] = true }
     }
 
     suspend fun fetchVotes(): List<CandidateUiState> {
         val phoneId = getPhoneId(context)
-        val (votesResponse, deviceVote) = coroutineScope {
-            val votes = async { api.getVotes() }
-            val device = async { api.getDeviceVote(phoneId) }
+
+        // Both calls are independent — if one fails we still show what we can
+        val (votesResult, deviceVoteResult) = coroutineScope {
+            val votes = async { runCatching { api.getVotes() } }
+            val device = async { runCatching { api.getDeviceVote(phoneId) } }
             votes.await() to device.await()
         }
-        // Sync server-side vote into DataStore (source of truth)
-        context.dataStore.edit { prefs ->
-            val serverId = deviceVote.candidate_id
-            if (serverId != null) prefs[KEY_VOTED_FOR] = serverId
-            else prefs.remove(KEY_VOTED_FOR)
+
+        val countMap = votesResult.getOrNull()
+            ?.candidates
+            ?.associate { it.id to it.count }
+            ?: emptyMap()
+
+        // Server vote wins; fall back to DataStore if server unreachable
+        val votedId = deviceVoteResult.getOrNull()
+            ?.candidate_id
+            ?: context.dataStore.data.first()[KEY_VOTED_FOR]
+
+        // Sync DataStore only when server responded
+        if (deviceVoteResult.isSuccess) {
+            context.dataStore.edit { prefs ->
+                if (votedId != null) prefs[KEY_VOTED_FOR] = votedId
+                else prefs.remove(KEY_VOTED_FOR)
+            }
         }
-        val countMap = votesResponse.candidates.associate { it.id to it.count }
-        return buildUiList(countMap, deviceVote.candidate_id)
+
+        return buildUiList(countMap, votedId)
     }
 
     suspend fun vote(candidateId: String): String {
@@ -74,7 +93,7 @@ class VoteRepository(private val context: Context) {
 
     private fun buildUiList(
         countMap: Map<String, Int>,
-        overrideVotedId: String? = null,
+        votedId: String? = null,
     ): List<CandidateUiState> {
         val maxCount = countMap.values.maxOrNull()?.takeIf { it > 0 } ?: 1
         return CANDIDATES
@@ -84,9 +103,9 @@ class VoteRepository(private val context: Context) {
                     info = info,
                     voteCount = count,
                     progressFraction = count.toFloat() / maxCount,
-                    isVotedFor = overrideVotedId == info.id,
+                    isVotedFor = votedId == info.id,
                 )
             }
-            .sortedByDescending { it.voteCount }
+            .sortedWith(compareByDescending<CandidateUiState> { it.voteCount }.thenBy { it.info.name })
     }
 }

@@ -23,7 +23,8 @@ class VoteViewModel(app: Application) : AndroidViewModel(app) {
     val votedCandidateId: StateFlow<String?> = repository.votedCandidateId
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
-    private val _candidates = MutableStateFlow<List<CandidateUiState>>(emptyList())
+    // Initialised immédiatement avec les candidats hardcodés (0 votes) — jamais vide
+    private val _candidates = MutableStateFlow<List<CandidateUiState>>(repository.baseUiList())
     val candidates: StateFlow<List<CandidateUiState>> = _candidates.asStateFlow()
 
     private val _isLoading = MutableStateFlow(false)
@@ -45,10 +46,15 @@ class VoteViewModel(app: Application) : AndroidViewModel(app) {
             _isLoading.value = true
             _error.value = null
             runCatching { repository.fetchVotes() }
-                .onSuccess { list ->
-                    _candidates.value = list.map { it.copy(isVotedFor = it.info.id == votedCandidateId.value) }
+                .onSuccess { _candidates.value = it }
+                .onFailure {
+                    // Réseau indisponible : on garde les candidats affichés,
+                    // on met juste à jour le vote connu depuis le DataStore
+                    _candidates.update { list ->
+                        list.map { c -> c.copy(isVotedFor = c.info.id == votedCandidateId.value) }
+                    }
+                    _error.value = it.message
                 }
-                .onFailure { _error.value = it.message }
             _isLoading.value = false
         }
     }
@@ -64,12 +70,9 @@ class VoteViewModel(app: Application) : AndroidViewModel(app) {
 
     fun vote(candidateId: String) {
         if (_isMockMode.value) {
-            // In mock mode: toggle locally without network call
-            val currentVoted = votedCandidateId.value
+            val currentVoted = _candidates.value.firstOrNull { it.isVotedFor }?.info?.id
             val newVoted = if (currentVoted == candidateId) null else candidateId
-            _candidates.update { list ->
-                list.map { it.copy(isVotedFor = it.info.id == newVoted) }
-            }
+            _candidates.update { list -> list.map { it.copy(isVotedFor = it.info.id == newVoted) } }
             return
         }
         viewModelScope.launch {
