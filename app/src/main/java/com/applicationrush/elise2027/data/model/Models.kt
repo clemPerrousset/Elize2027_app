@@ -55,6 +55,9 @@ data class VoteRequest(val phone_id: String, val candidate_id: String, val token
 @Serializable
 data class VoteApiResponse(val status: String? = null, val error: String? = null)
 
+@Serializable
+data class DeviceVoteResponse(val candidate_id: String? = null)
+
 // ── UI state ───────────────────────────────────────────────────────────────
 
 data class CandidateUiState(

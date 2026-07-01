@@ -12,6 +12,8 @@ import com.applicationrush.elise2027.data.model.CandidateUiState
 import com.applicationrush.elise2027.data.model.MOCK_VOTE_COUNTS
 import com.applicationrush.elise2027.util.generateHmacToken
 import com.applicationrush.elise2027.util.getPhoneId
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -32,9 +34,20 @@ class VoteRepository(private val context: Context) {
     }
 
     suspend fun fetchVotes(): List<CandidateUiState> {
-        val response = api.getVotes()
-        val countMap = response.candidates.associate { it.id to it.count }
-        return buildUiList(countMap)
+        val phoneId = getPhoneId(context)
+        val (votesResponse, deviceVote) = coroutineScope {
+            val votes = async { api.getVotes() }
+            val device = async { api.getDeviceVote(phoneId) }
+            votes.await() to device.await()
+        }
+        // Sync server-side vote into DataStore (source of truth)
+        context.dataStore.edit { prefs ->
+            val serverId = deviceVote.candidate_id
+            if (serverId != null) prefs[KEY_VOTED_FOR] = serverId
+            else prefs.remove(KEY_VOTED_FOR)
+        }
+        val countMap = votesResponse.candidates.associate { it.id to it.count }
+        return buildUiList(countMap, deviceVote.candidate_id)
     }
 
     suspend fun vote(candidateId: String): String {

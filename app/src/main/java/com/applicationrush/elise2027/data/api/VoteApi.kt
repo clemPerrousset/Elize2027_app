@@ -1,5 +1,6 @@
 package com.applicationrush.elise2027.data.api
 
+import com.applicationrush.elise2027.data.model.DeviceVoteResponse
 import com.applicationrush.elise2027.data.model.VoteApiResponse
 import com.applicationrush.elise2027.data.model.VoteCountResponse
 import com.applicationrush.elise2027.data.model.VoteRequest
@@ -30,6 +31,9 @@ class VoteApi(private val baseUrl: String) {
 
     suspend fun getVotes(): VoteCountResponse =
         client.get("$baseUrl/votes").body()
+
+    suspend fun getDeviceVote(phoneId: String): DeviceVoteResponse =
+        client.get("$baseUrl/votes/$phoneId").body()
 
     suspend fun castVote(phoneId: String, candidateId: String, token: String): VoteApiResponse =
         client.post("$baseUrl/vote") {
