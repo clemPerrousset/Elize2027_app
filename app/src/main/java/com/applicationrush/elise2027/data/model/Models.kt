@@ -10,6 +10,7 @@ data class CandidateInfo(
     val party: String,
     val bloc: String,
     val colorHex: String,
+    val secondaryColorHex: String? = null,
     val photoUrl: String? = null,
 )
 
@@ -17,7 +18,7 @@ data class CandidateInfo(
 val CANDIDATES: List<CandidateInfo> = listOf(
     CandidateInfo("arthaud_nathalie",    "Nathalie Arthaud",       "Lutte ouvrière",      "Extrême gauche",  "#E2001A"),
     CandidateInfo("asselineau_francois", "François Asselineau",    "UPR",                 "Souverainiste",   "#6B8E23"),
-    CandidateInfo("melenchon_jeanluc",   "Jean-Luc Mélenchon",     "LFI",                 "Gauche",          "#C9190E"),
+    CandidateInfo("melenchon_jeanluc",   "Jean-Luc Mélenchon",     "LFI",                 "Gauche",          "#7C3AED", secondaryColorHex = "#4C1D95"),
     CandidateInfo("tondelier_marine",    "Marine Tondelier",       "Les Écologistes",     "Gauche",          "#2E8B57"),
     CandidateInfo("guedj_jerome",        "Jérôme Guedj",           "PS",                  "Gauche",          "#FF8080"),
     CandidateInfo("bouamrane_karim",     "Karim Bouamrane",        "PS",                  "Gauche",          "#FF6B6B"),

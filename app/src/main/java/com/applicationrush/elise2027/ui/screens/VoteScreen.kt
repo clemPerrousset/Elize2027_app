@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -49,6 +50,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -184,16 +186,20 @@ fun CandidateCard(
     modifier: Modifier = Modifier,
 ) {
     val partyColor = parseHexColor(candidate.info.colorHex)
+    val secondaryColor = candidate.info.secondaryColorHex?.let { parseHexColor(it) }
+    val brush = secondaryColor?.let { Brush.horizontalGradient(listOf(partyColor, it)) }
     val progress by animateFloatAsState(
         targetValue = candidate.progressFraction,
         animationSpec = tween(600),
         label = "progress_${candidate.info.id}",
     )
 
-    val borderMod = if (candidate.isVotedFor)
-        Modifier.border(2.dp, partyColor, RoundedCornerShape(16.dp))
-    else
-        Modifier
+    val borderMod = if (candidate.isVotedFor) {
+        if (brush != null)
+            Modifier.border(2.dp, brush, RoundedCornerShape(16.dp))
+        else
+            Modifier.border(2.dp, partyColor, RoundedCornerShape(16.dp))
+    } else Modifier
 
     Box(
         modifier = modifier
@@ -257,7 +263,7 @@ fun CandidateCard(
                             fontSize = 14.sp,
                         )
                         Text(
-                            text = "votes",
+                            text = if (candidate.voteCount == 1) "vote" else "votes",
                             color = OnSurfaceMuted,
                             fontSize = 11.sp,
                         )
@@ -267,15 +273,31 @@ fun CandidateCard(
 
             // Progress bar
             if (candidate.voteCount > 0) {
-                LinearProgressIndicator(
-                    progress = { progress },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(4.dp),
-                    color = partyColor,
-                    trackColor = SurfaceVariant,
-                    strokeCap = StrokeCap.Round,
-                )
+                if (brush != null) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(4.dp)
+                            .background(SurfaceVariant),
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(progress)
+                                .fillMaxHeight()
+                                .background(brush),
+                        )
+                    }
+                } else {
+                    LinearProgressIndicator(
+                        progress = { progress },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(4.dp),
+                        color = partyColor,
+                        trackColor = SurfaceVariant,
+                        strokeCap = StrokeCap.Round,
+                    )
+                }
             }
 
             // Party color stripe at bottom
@@ -283,7 +305,7 @@ fun CandidateCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(3.dp)
-                    .background(partyColor.copy(alpha = 0.5f)),
+                    .background(brush ?: Brush.horizontalGradient(listOf(partyColor.copy(alpha = 0.5f), partyColor.copy(alpha = 0.5f)))),
             )
         }
     }
