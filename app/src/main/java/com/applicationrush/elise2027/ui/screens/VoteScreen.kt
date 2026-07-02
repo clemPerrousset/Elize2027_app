@@ -151,6 +151,7 @@ fun VoteScreen(viewModel: VoteViewModel) {
             return@Scaffold
         }
 
+        Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -158,30 +159,6 @@ fun VoteScreen(viewModel: VoteViewModel) {
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            item {
-                AnimatedVisibility(
-                    visible = cooldown > 0,
-                    enter = fadeIn() + scaleIn(),
-                    exit = fadeOut(),
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 8.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(Color(0xFF2A2A45))
-                            .padding(vertical = 10.dp),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Text(
-                            text = "Attendez $cooldown…",
-                            color = OnSurfaceMuted,
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.SemiBold,
-                        )
-                    }
-                }
-            }
             item { Spacer(Modifier.height(4.dp)) }
             itemsIndexed(
                 items = candidates,
@@ -199,8 +176,34 @@ fun VoteScreen(viewModel: VoteViewModel) {
                     ),
                 )
             }
-            item { Spacer(Modifier.height(16.dp)) }
+            item { Spacer(Modifier.height(80.dp)) }
         }
+
+        // Cooldown overlay — flottant en bas par-dessus la liste
+        AnimatedVisibility(
+            visible = cooldown > 0,
+            enter = fadeIn() + scaleIn(),
+            exit = fadeOut(),
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 24.dp),
+        ) {
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(24.dp))
+                    .background(Color(0xCC1E1E35))
+                    .padding(horizontal = 28.dp, vertical = 14.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = "Attendez $cooldown…",
+                    color = OnSurface,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.SemiBold,
+                )
+            }
+        }
+        } // Box
     }
 }
 
