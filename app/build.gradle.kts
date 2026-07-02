@@ -76,6 +76,7 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.datastore.preferences)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.play.app.update)
 
     debugImplementation(libs.compose.ui.tooling)
 
