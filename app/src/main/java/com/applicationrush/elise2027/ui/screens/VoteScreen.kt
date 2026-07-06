@@ -29,6 +29,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -170,10 +172,14 @@ fun VoteScreen(viewModel: VoteViewModel) {
         }
 
         Box(modifier = Modifier.fillMaxSize()) {
+        PullToRefreshBox(
+            isRefreshing = isLoading && !isMockMode,
+            onRefresh = { if (!isMockMode) viewModel.refresh() },
+            modifier = Modifier.fillMaxSize().padding(padding),
+        ) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
@@ -200,6 +206,7 @@ fun VoteScreen(viewModel: VoteViewModel) {
             }
             item { Spacer(Modifier.height(80.dp)) }
         }
+        } // PullToRefreshBox
 
         // Cooldown overlay — flottant en bas par-dessus la liste
         AnimatedVisibility(
@@ -279,12 +286,18 @@ fun CandidateCard(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 // Rank
+                val rankColor = when (rank) {
+                    1 -> Color(0xFFFFD700)
+                    2 -> Color(0xFFB0BEC5)
+                    3 -> Color(0xFFCD7F32)
+                    else -> OnSurfaceMuted
+                }
                 Text(
                     text = "$rank",
-                    color = OnSurfaceMuted,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.width(20.dp),
+                    color = rankColor,
+                    fontSize = 13.sp,
+                    fontWeight = if (rank <= 3) FontWeight.ExtraBold else FontWeight.Bold,
+                    modifier = Modifier.width(22.dp),
                 )
 
                 Spacer(Modifier.width(8.dp))
