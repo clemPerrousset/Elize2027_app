@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -72,6 +73,19 @@ import com.applicationrush.elise2027.ui.theme.OnSurfaceMuted
 import com.applicationrush.elise2027.ui.theme.Surface
 import com.applicationrush.elise2027.ui.theme.SurfaceVariant
 import com.applicationrush.elise2027.ui.viewmodel.VoteViewModel
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.withFrameNanos
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.unit.IntOffset
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.roundToInt
+import kotlin.math.sin
+import kotlin.random.Random
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -83,6 +97,8 @@ fun VoteScreen(viewModel: VoteViewModel) {
     val cooldown by viewModel.cooldownSeconds.collectAsState()
 
     val snackbar = remember { SnackbarHostState() }
+    var explosionTrigger by remember { mutableIntStateOf(0) }
+    var explosionOffset by remember { mutableStateOf(Offset.Zero) }
 
     LaunchedEffect(error) {
         if (error != null) {
@@ -170,7 +186,11 @@ fun VoteScreen(viewModel: VoteViewModel) {
                     candidate = candidate,
                     rank = index + 1,
                     enabled = cooldown == 0,
-                    onVote = { viewModel.vote(candidate.info.id) },
+                    onVote = { offset ->
+                        explosionOffset = offset
+                        explosionTrigger++
+                        viewModel.vote(candidate.info.id)
+                    },
                     modifier = Modifier.animateItem(
                         fadeInSpec = tween(300),
                         fadeOutSpec = tween(300),
@@ -205,6 +225,11 @@ fun VoteScreen(viewModel: VoteViewModel) {
                 )
             }
         }
+        ConfettiExplosion(
+            trigger = explosionTrigger,
+            origin = explosionOffset,
+            modifier = Modifier.fillMaxSize(),
+        )
         } // Box
     }
 }
@@ -214,7 +239,7 @@ fun CandidateCard(
     candidate: CandidateUiState,
     rank: Int,
     enabled: Boolean = true,
-    onVote: () -> Unit,
+    onVote: (Offset) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val partyColor = parseHexColor(candidate.info.colorHex)
@@ -225,6 +250,8 @@ fun CandidateCard(
         animationSpec = tween(600),
         label = "progress_${candidate.info.id}",
     )
+
+    var cardCenter by remember { mutableStateOf(Offset.Zero) }
 
     val borderMod = if (candidate.isVotedFor) {
         if (brush != null)
@@ -240,7 +267,11 @@ fun CandidateCard(
             .then(borderMod)
             .background(if (candidate.isVotedFor) partyColor.copy(alpha = 0.08f) else Surface)
             .alpha(if (enabled) 1f else 0.5f)
-            .clickable(enabled = enabled) { onVote() }
+            .onGloballyPositioned { coords ->
+                val b = coords.boundsInWindow()
+                cardCenter = Offset(b.center.x, b.center.y)
+            }
+            .clickable(enabled = enabled) { onVote(cardCenter) }
     ) {
         Column {
             Row(
@@ -425,5 +456,58 @@ private fun formatCount(count: Int): String {
         if (remainder == 0) "${thousands}k" else "${thousands},${remainder}k"
     } else {
         count.toString()
+    }
+}
+
+@Composable
+private fun ConfettiExplosion(
+    trigger: Int,
+    origin: Offset,
+    modifier: Modifier = Modifier,
+) {
+    if (trigger == 0) return
+
+    data class Particle(val velX: Float, val velY: Float, val emoji: String)
+
+    val emojis = listOf("🇫🇷", "🇫🇷", "🇫🇷", "⭐", "🗼")
+    val particles = remember(trigger) {
+        List(16) { i ->
+            val angle = (i * (360f / 16f) + Random.nextFloat() * 12f) * PI.toFloat() / 180f
+            val speed = 160f + Random.nextFloat() * 220f
+            Particle(
+                velX = cos(angle) * speed,
+                velY = sin(angle) * speed,
+                emoji = emojis[i % emojis.size],
+            )
+        }
+    }
+
+    var progress by remember(trigger) { mutableFloatStateOf(0f) }
+
+    LaunchedEffect(trigger) {
+        val startNanos = withFrameNanos { it }
+        val durationNanos = 850_000_000L
+        while (progress < 1f) {
+            withFrameNanos { frameNanos ->
+                progress = ((frameNanos - startNanos).toFloat() / durationNanos).coerceAtMost(1f)
+            }
+        }
+    }
+
+    Box(modifier = modifier) {
+        particles.forEach { p ->
+            val t = progress
+            val x = origin.x + p.velX * t
+            val y = origin.y + p.velY * t + 480f * t * t  // gravité
+            val alpha = (1f - t * 1.4f).coerceIn(0f, 1f)
+
+            Text(
+                text = p.emoji,
+                fontSize = 18.sp,
+                modifier = Modifier
+                    .offset { IntOffset((x - 12f).roundToInt(), (y - 12f).roundToInt()) }
+                    .graphicsLayer { this.alpha = alpha },
+            )
+        }
     }
 }

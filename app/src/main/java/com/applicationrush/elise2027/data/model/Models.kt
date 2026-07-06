@@ -22,7 +22,7 @@ val CANDIDATES: List<CandidateInfo> = listOf(
         photoUrl = "$WC/Nathalie_Arthaud_(LO)_19-05-2024.jpg"),
     CandidateInfo("asselineau_francois", "François Asselineau",    "UPR",                 "Souverainiste",   "#6B8E23",
         photoUrl = "$WC/Fran%C3%A7ois_ASSELINEAU.jpg"),
-    CandidateInfo("melenchon_jeanluc",   "Jean-Luc Mélenchon",     "LFI",                 "Gauche",          "#7C3AED", secondaryColorHex = "#4C1D95",
+    CandidateInfo("melenchon_jeanluc",   "Jean-Luc Mélenchon",     "LFI",                 "Gauche",          "#C8285C", secondaryColorHex = "#7C3AED",
         photoUrl = "$WC/Jean-Luc_MELENCHON_2016_2_(cropped).jpg"),
     CandidateInfo("tondelier_marine",    "Marine Tondelier",       "Les Écologistes",     "Gauche",          "#2E8B57",
         photoUrl = "$WC/Huma2023MarineTondelier.jpg"),
