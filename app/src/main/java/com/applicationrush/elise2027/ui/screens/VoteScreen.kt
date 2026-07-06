@@ -55,12 +55,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.applicationrush.elise2027.R
 import com.applicationrush.elise2027.data.model.CandidateInfo
 import com.applicationrush.elise2027.data.model.CandidateUiState
@@ -346,16 +348,21 @@ fun CandidateCard(
 private fun CandidateAvatar(info: CandidateInfo, partyColor: Color) {
     Box(
         modifier = Modifier
-            .size(52.dp)
+            .size(68.dp)
             .clip(CircleShape)
             .background(partyColor.copy(alpha = 0.2f)),
         contentAlignment = Alignment.Center,
     ) {
         if (info.photoUrl != null) {
+            val context = LocalContext.current
             var loadFailed by remember { mutableStateOf(false) }
             if (!loadFailed) {
                 AsyncImage(
-                    model = info.photoUrl,
+                    model = ImageRequest.Builder(context)
+                        .data(info.photoUrl)
+                        .addHeader("User-Agent", "Elyze2027App/1.0 (Android; contact@elyze2027.fr)")
+                        .crossfade(true)
+                        .build(),
                     contentDescription = info.name,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize(),
