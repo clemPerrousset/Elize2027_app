@@ -63,11 +63,17 @@ val CANDIDATES: List<CandidateInfo> = listOf(
     // ⚠️ Philippot : hébergé sur fr.wikipedia (pas Commons), à vérifier visuellement
     CandidateInfo("philippot_florian",   "Florian Philippot",      "Les Patriotes",       "Extrême droite",  "#546E7A",
         photoUrl = "https://fr.wikipedia.org/wiki/Special:FilePath/Florian_Philippot_(cropped).JPG"),
-    CandidateInfo("roussel_fabien",     "Fabien Roussel",     "PCF",                    "Gauche",        "#B71C1C"),
-    CandidateInfo("branco_juan",        "Juan Branco",        "Les Ruches",             "Gauche",        "#F9A825", secondaryColorHex = "#212121"),
-    CandidateInfo("egger_clara",        "Clara Egger",        "Solution démocratique", "Centre",        "#00ACC1"),
-    CandidateInfo("brun_philippe",      "Philippe Brun",      "PS",                     "Gauche",        "#9575CD"),
-    CandidateInfo("lalanne_francis",    "Francis Lalanne",    "France Libre",           "Souverainiste", "#00695C"),
+    CandidateInfo("roussel_fabien",     "Fabien Roussel",     "PCF",                    "Gauche",        "#B71C1C",
+        photoUrl = "$WC/Roussel_Fabien_1.jpg"),
+    CandidateInfo("branco_juan",        "Juan Branco",        "Les Ruches",             "Gauche",        "#F9A825", secondaryColorHex = "#212121",
+        photoUrl = "$WC/Juan_Branco_portrait.png"),
+    CandidateInfo("egger_clara",        "Clara Egger",        "Solution démocratique", "Centre",        "#00ACC1",
+        photoUrl = "$WC/Clara_Egger.jpg"),
+    CandidateInfo("brun_philippe",      "Philippe Brun",      "PS",                     "Gauche",        "#9575CD",
+        photoUrl = "$WC/LOUVIERS_-_4e_circo_Eure_-_Philippe_Brun_nouveau_d%C3%A9put%C3%A9_22_juin_2022_(1)_(cropped).jpg"),
+    CandidateInfo("lalanne_francis",    "Francis Lalanne",    "France Libre",           "Souverainiste", "#00695C",
+        photoUrl = "$WC/Lalanne_2021_(cropped).jpg"),
+    // ⚠️ Mathieu : pas de page Wikipedia / portrait libre de droits trouvé — fallback initiales
     CandidateInfo("mathieu_benoit",     "Benoît Mathieu",     "Indépendant",            "Non classé",    "#757575"),
 )
 

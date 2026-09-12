@@ -9,6 +9,7 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -20,6 +21,7 @@ import com.google.android.play.core.appupdate.AppUpdateManagerFactory
 import com.google.android.play.core.appupdate.AppUpdateOptions
 import com.google.android.play.core.install.model.AppUpdateType
 import com.google.android.play.core.install.model.UpdateAvailability
+import com.google.android.play.core.review.ReviewManagerFactory
 
 class MainActivity : ComponentActivity() {
 
@@ -36,6 +38,10 @@ class MainActivity : ComponentActivity() {
                 val vm: VoteViewModel = viewModel()
                 val onboardingDone by vm.onboardingDone.collectAsState()
 
+                LaunchedEffect(Unit) {
+                    vm.requestReview.collect { requestInAppReview() }
+                }
+
                 AnimatedContent(
                     targetState = onboardingDone,
                     transitionSpec = { fadeIn() togetherWith fadeOut() },
@@ -47,6 +53,18 @@ class MainActivity : ComponentActivity() {
                         OnboardingScreen(onStart = { vm.markOnboardingDone() })
                     }
                 }
+            }
+        }
+    }
+
+    // Propose la notation native de l'app (fenêtre système Play), juste après le premier vote.
+    private fun requestInAppReview() {
+        val manager = ReviewManagerFactory.create(this)
+        manager.requestReviewFlow().addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                manager.launchReviewFlow(this, task.result)
+                // Le système décide s'il affiche réellement la fenêtre (quota Play) —
+                // aucune garantie ni callback de résultat, par design de l'API.
             }
         }
     }

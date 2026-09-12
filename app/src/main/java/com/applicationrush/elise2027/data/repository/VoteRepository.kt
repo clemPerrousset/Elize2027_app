@@ -21,12 +21,15 @@ import kotlinx.coroutines.flow.map
 
 private val Context.dataStore by preferencesDataStore("elyze_prefs")
 
+data class VoteOutcome(val status: String, val isFirstEverVote: Boolean)
+
 class VoteRepository(private val context: Context) {
 
     private val api = VoteApi(BuildConfig.SERVER_URL)
 
     private val KEY_ONBOARDING_DONE = booleanPreferencesKey("onboarding_done")
     private val KEY_VOTED_FOR = stringPreferencesKey("voted_for")
+    private val KEY_HAS_VOTED_BEFORE = booleanPreferencesKey("has_voted_before")
 
     val onboardingDone: Flow<Boolean> = context.dataStore.data.map { it[KEY_ONBOARDING_DONE] ?: false }
     val votedCandidateId: Flow<String?> = context.dataStore.data.map { it[KEY_VOTED_FOR] }
@@ -70,7 +73,7 @@ class VoteRepository(private val context: Context) {
         return buildUiList(countMap, votedId)
     }
 
-    suspend fun vote(candidateId: String): String {
+    suspend fun vote(candidateId: String): VoteOutcome {
         val phoneId = getPhoneId(context)
         val token = generateHmacToken(phoneId, BuildConfig.HMAC_SECRET)
         val result = api.castVote(phoneId, candidateId, token)
@@ -82,11 +85,15 @@ class VoteRepository(private val context: Context) {
             "unvoted" -> null
             else -> null
         }
+        val hasVotedBefore = context.dataStore.data.first()[KEY_HAS_VOTED_BEFORE] ?: false
+        val isFirstEverVote = result.status == "voted" && !hasVotedBefore
+
         context.dataStore.edit { prefs ->
             if (newVoted != null) prefs[KEY_VOTED_FOR] = newVoted
             else prefs.remove(KEY_VOTED_FOR)
+            if (isFirstEverVote) prefs[KEY_HAS_VOTED_BEFORE] = true
         }
-        return result.status ?: "unknown"
+        return VoteOutcome(status = result.status ?: "unknown", isFirstEverVote = isFirstEverVote)
     }
 
     fun mockUiList(currentVotedId: String?): List<CandidateUiState> =

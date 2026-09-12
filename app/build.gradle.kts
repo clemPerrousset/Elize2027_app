@@ -77,6 +77,7 @@ dependencies {
     implementation(libs.datastore.preferences)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.play.app.update)
+    implementation(libs.play.review)
 
     debugImplementation(libs.compose.ui.tooling)
 

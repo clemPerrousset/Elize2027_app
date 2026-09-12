@@ -61,6 +61,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -380,10 +381,10 @@ fun CandidateCard(
 }
 
 @Composable
-private fun CandidateAvatar(info: CandidateInfo, partyColor: Color) {
+internal fun CandidateAvatar(info: CandidateInfo, partyColor: Color, size: Dp = 68.dp) {
     Box(
         modifier = Modifier
-            .size(68.dp)
+            .size(size)
             .clip(CircleShape)
             .background(partyColor.copy(alpha = 0.2f)),
         contentAlignment = Alignment.Center,
@@ -404,16 +405,16 @@ private fun CandidateAvatar(info: CandidateInfo, partyColor: Color) {
                     onError = { loadFailed = true },
                 )
             } else {
-                InitialsText(info.name, partyColor)
+                InitialsText(info.name, partyColor, size)
             }
         } else {
-            InitialsText(info.name, partyColor)
+            InitialsText(info.name, partyColor, size)
         }
     }
 }
 
 @Composable
-private fun InitialsText(name: String, partyColor: Color) {
+private fun InitialsText(name: String, partyColor: Color, avatarSize: Dp = 68.dp) {
     val initials = name
         .split(" ")
         .filter { it.isNotEmpty() && it[0].isLetter() }
@@ -424,7 +425,7 @@ private fun InitialsText(name: String, partyColor: Color) {
         text = initials,
         color = partyColor,
         fontWeight = FontWeight.Bold,
-        fontSize = 16.sp,
+        fontSize = (avatarSize.value * 16f / 68f).sp,
     )
 }
 

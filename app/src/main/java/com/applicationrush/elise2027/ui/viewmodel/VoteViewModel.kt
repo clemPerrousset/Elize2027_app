@@ -7,11 +7,14 @@ import com.applicationrush.elise2027.data.model.CANDIDATES
 import com.applicationrush.elise2027.data.model.CandidateUiState
 import com.applicationrush.elise2027.data.model.VoteHistoryPoint
 import com.applicationrush.elise2027.data.repository.VoteRepository
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -49,6 +52,11 @@ class VoteViewModel(app: Application) : AndroidViewModel(app) {
     val isHistoryLoading: StateFlow<Boolean> = _isHistoryLoading.asStateFlow()
 
     private var historyLoaded = false
+
+    // Événement ponctuel : déclenché juste après le tout premier vote de l'utilisateur,
+    // pour proposer la notation native de l'app (Play In-App Review).
+    private val _requestReview = Channel<Unit>(Channel.CONFLATED)
+    val requestReview: Flow<Unit> = _requestReview.receiveAsFlow()
 
     init {
         refresh()
@@ -104,7 +112,10 @@ class VoteViewModel(app: Application) : AndroidViewModel(app) {
         }
         viewModelScope.launch {
             runCatching { repository.vote(candidateId) }
-                .onSuccess { refresh() }
+                .onSuccess { outcome ->
+                    refresh()
+                    if (outcome.isFirstEverVote) _requestReview.trySend(Unit)
+                }
                 .onFailure { _error.value = it.message }
             startCooldown()
         }

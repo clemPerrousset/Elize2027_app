@@ -15,6 +15,7 @@ coil = "2.7.0"
 datastore = "1.1.1"
 kotlinxSerialization = "1.7.3"
 playUpdate = "2.1.0"
+playReview = "2.0.2"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -50,6 +51,7 @@ datastore-preferences = { group = "androidx.datastore", name = "datastore-prefer
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 
 play-app-update = { group = "com.google.android.play", name = "app-update-ktx", version.ref = "playUpdate" }
+play-review = { group = "com.google.android.play", name = "review-ktx", version.ref = "playReview" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
