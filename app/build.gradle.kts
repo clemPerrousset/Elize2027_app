@@ -22,13 +22,13 @@ android {
         applicationId = "com.applicationrush.elise2027"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
+        versionCode = 3
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         buildConfigField("String", "HMAC_SECRET", "\"${localProps["VOTE_HMAC_SECRET"] ?: "DISABLED"}\"")
-        buildConfigField("String", "SERVER_URL", "\"${localProps["SERVER_URL"] ?: "http://151.80.133.119:3000"}\"")
+        buildConfigField("String", "SERVER_URL", "\"${localProps["SERVER_URL"] ?: "https://applicationrush.fr"}\"")
     }
 
     buildTypes {
