@@ -10,6 +10,7 @@ import com.applicationrush.elise2027.data.api.VoteApi
 import com.applicationrush.elise2027.data.model.CANDIDATES
 import com.applicationrush.elise2027.data.model.CandidateUiState
 import com.applicationrush.elise2027.data.model.MOCK_VOTE_COUNTS
+import com.applicationrush.elise2027.data.model.VoteHistoryPoint
 import com.applicationrush.elise2027.util.generateHmacToken
 import com.applicationrush.elise2027.util.getPhoneId
 import kotlinx.coroutines.async
@@ -90,6 +91,11 @@ class VoteRepository(private val context: Context) {
 
     fun mockUiList(currentVotedId: String?): List<CandidateUiState> =
         buildUiList(MOCK_VOTE_COUNTS, currentVotedId)
+
+    suspend fun fetchHistory(candidateIds: List<String>): List<VoteHistoryPoint> =
+        runCatching { api.getVotesHistory(candidateIds).history }
+            .getOrNull()
+            ?: emptyList()
 
     private fun buildUiList(
         countMap: Map<String, Int>,

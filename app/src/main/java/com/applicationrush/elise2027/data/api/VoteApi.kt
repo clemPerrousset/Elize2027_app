@@ -3,6 +3,7 @@ package com.applicationrush.elise2027.data.api
 import com.applicationrush.elise2027.data.model.DeviceVoteResponse
 import com.applicationrush.elise2027.data.model.VoteApiResponse
 import com.applicationrush.elise2027.data.model.VoteCountResponse
+import com.applicationrush.elise2027.data.model.VoteHistoryResponse
 import com.applicationrush.elise2027.data.model.VoteRequest
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -15,6 +16,7 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
+import io.ktor.http.encodeURLQueryComponent
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 
@@ -40,4 +42,9 @@ class VoteApi(private val baseUrl: String) {
             contentType(ContentType.Application.Json)
             setBody(VoteRequest(phoneId, candidateId, token))
         }.body()
+
+    suspend fun getVotesHistory(candidateIds: List<String>): VoteHistoryResponse {
+        val query = candidateIds.joinToString(",") { it.encodeURLQueryComponent() }
+        return client.get("$baseUrl/votes/history?candidate_ids=$query").body()
+    }
 }

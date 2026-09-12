@@ -12,8 +12,8 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.applicationrush.elise2027.ui.screens.MainScreen
 import com.applicationrush.elise2027.ui.screens.OnboardingScreen
-import com.applicationrush.elise2027.ui.screens.VoteScreen
 import com.applicationrush.elise2027.ui.theme.ElizeTheme
 import com.applicationrush.elise2027.ui.viewmodel.VoteViewModel
 import com.google.android.play.core.appupdate.AppUpdateManagerFactory
@@ -42,7 +42,7 @@ class MainActivity : ComponentActivity() {
                     label = "screen_transition",
                 ) { done ->
                     if (done) {
-                        VoteScreen(viewModel = vm)
+                        MainScreen(viewModel = vm)
                     } else {
                         OnboardingScreen(onStart = { vm.markOnboardingDone() })
                     }

@@ -3,7 +3,9 @@ package com.applicationrush.elise2027.ui.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.applicationrush.elise2027.data.model.CANDIDATES
 import com.applicationrush.elise2027.data.model.CandidateUiState
+import com.applicationrush.elise2027.data.model.VoteHistoryPoint
 import com.applicationrush.elise2027.data.repository.VoteRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -40,8 +42,27 @@ class VoteViewModel(app: Application) : AndroidViewModel(app) {
     private val _cooldownSeconds = MutableStateFlow(0)
     val cooldownSeconds: StateFlow<Int> = _cooldownSeconds.asStateFlow()
 
+    private val _history = MutableStateFlow<List<VoteHistoryPoint>>(emptyList())
+    val history: StateFlow<List<VoteHistoryPoint>> = _history.asStateFlow()
+
+    private val _isHistoryLoading = MutableStateFlow(false)
+    val isHistoryLoading: StateFlow<Boolean> = _isHistoryLoading.asStateFlow()
+
+    private var historyLoaded = false
+
     init {
         refresh()
+    }
+
+    // Appelé quand l'onglet "Progression" est affiché — ne recharge pas à chaque recomposition
+    fun loadHistoryIfNeeded() {
+        if (historyLoaded || _isHistoryLoading.value) return
+        historyLoaded = true
+        viewModelScope.launch {
+            _isHistoryLoading.value = true
+            _history.value = repository.fetchHistory(CANDIDATES.map { it.id })
+            _isHistoryLoading.value = false
+        }
     }
 
     fun refresh() {

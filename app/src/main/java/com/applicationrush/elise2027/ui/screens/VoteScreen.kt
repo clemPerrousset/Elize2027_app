@@ -39,7 +39,6 @@ import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -132,14 +131,6 @@ fun VoteScreen(viewModel: VoteViewModel) {
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Background),
                 actions = {
-                    // Temporary mock toggle button
-                    TextButton(onClick = { viewModel.toggleMockMode() }) {
-                        Text(
-                            if (isMockMode) "🎭 Live" else "🎭 Mock",
-                            color = if (isMockMode) Color(0xFFFFD700) else OnSurfaceMuted,
-                            fontSize = 13.sp,
-                        )
-                    }
                     // Refresh button
                     IconButton(
                         onClick = { viewModel.refresh() },
@@ -456,7 +447,7 @@ private fun PartyChip(party: String, color: Color) {
     }
 }
 
-private fun parseHexColor(hex: String): Color {
+internal fun parseHexColor(hex: String): Color {
     return runCatching {
         Color(android.graphics.Color.parseColor(hex))
     }.getOrDefault(Color.Gray)
