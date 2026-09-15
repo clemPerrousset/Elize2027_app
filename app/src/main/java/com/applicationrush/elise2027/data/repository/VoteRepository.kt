@@ -44,11 +44,12 @@ class VoteRepository(private val context: Context) {
 
     suspend fun fetchVotes(): List<CandidateUiState> {
         val phoneId = getPhoneId(context)
+        val token = generateHmacToken(phoneId, BuildConfig.HMAC_SECRET)
 
         // Both calls are independent — if one fails we still show what we can
         val (votesResult, deviceVoteResult) = coroutineScope {
             val votes = async { runCatching { api.getVotes() } }
-            val device = async { runCatching { api.getDeviceVote(phoneId) } }
+            val device = async { runCatching { api.getDeviceVote(phoneId, token) } }
             votes.await() to device.await()
         }
 

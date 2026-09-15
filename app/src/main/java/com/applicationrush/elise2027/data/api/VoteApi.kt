@@ -34,8 +34,8 @@ class VoteApi(private val baseUrl: String) {
     suspend fun getVotes(): VoteCountResponse =
         client.get("$baseUrl/votes").body()
 
-    suspend fun getDeviceVote(phoneId: String): DeviceVoteResponse =
-        client.get("$baseUrl/votes/$phoneId").body()
+    suspend fun getDeviceVote(phoneId: String, token: String): DeviceVoteResponse =
+        client.get("$baseUrl/votes/$phoneId?token=${token.encodeURLQueryComponent()}").body()
 
     suspend fun castVote(phoneId: String, candidateId: String, token: String): VoteApiResponse =
         client.post("$baseUrl/vote") {
