@@ -30,6 +30,7 @@ class VoteRepository(private val context: Context) {
     private val KEY_ONBOARDING_DONE = booleanPreferencesKey("onboarding_done")
     private val KEY_VOTED_FOR = stringPreferencesKey("voted_for")
     private val KEY_HAS_VOTED_BEFORE = booleanPreferencesKey("has_voted_before")
+    private val KEY_PROGRAMME_DISCLAIMER_HIDDEN = booleanPreferencesKey("programme_disclaimer_hidden")
 
     val onboardingDone: Flow<Boolean> = context.dataStore.data.map { it[KEY_ONBOARDING_DONE] ?: false }
     val votedCandidateId: Flow<String?> = context.dataStore.data.map { it[KEY_VOTED_FOR] }
@@ -40,6 +41,14 @@ class VoteRepository(private val context: Context) {
 
     suspend fun markOnboardingDone() {
         context.dataStore.edit { it[KEY_ONBOARDING_DONE] = true }
+    }
+
+    // Avertissement de la vue Programme ("Ne plus afficher" coché)
+    val programmeDisclaimerHidden: Flow<Boolean> =
+        context.dataStore.data.map { it[KEY_PROGRAMME_DISCLAIMER_HIDDEN] ?: false }
+
+    suspend fun hideProgrammeDisclaimer() {
+        context.dataStore.edit { it[KEY_PROGRAMME_DISCLAIMER_HIDDEN] = true }
     }
 
     suspend fun fetchVotes(): List<CandidateUiState> {
@@ -109,7 +118,9 @@ class VoteRepository(private val context: Context) {
         countMap: Map<String, Int>,
         votedId: String? = null,
     ): List<CandidateUiState> {
-        val maxCount = countMap.values.maxOrNull()?.takeIf { it > 0 } ?: 1
+        // Max calculé sur les seuls candidats affichés : un candidat retiré de l'app
+        // mais encore présent côté serveur ne doit pas écraser les barres.
+        val maxCount = CANDIDATES.maxOfOrNull { countMap[it.id] ?: 0 }?.takeIf { it > 0 } ?: 1
         return CANDIDATES
             .map { info ->
                 val count = countMap[info.id] ?: 0

@@ -22,8 +22,8 @@ android {
         applicationId = "com.applicationrush.elise2027"
         minSdk = 26
         targetSdk = 36
-        versionCode = 4
-        versionName = "2.0"
+        versionCode = 6
+        versionName = "3.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 

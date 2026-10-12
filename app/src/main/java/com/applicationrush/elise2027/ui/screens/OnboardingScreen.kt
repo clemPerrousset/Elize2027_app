@@ -94,7 +94,7 @@ fun OnboardingScreen(onStart: () -> Unit) {
             Spacer(Modifier.height(16.dp))
 
             Text(
-                "Élysée 2027",
+                "Elisée 2027",
                 color = OnSurface,
                 fontSize = 30.sp,
                 fontWeight = FontWeight.ExtraBold,
@@ -206,7 +206,7 @@ fun OnboardingScreen(onStart: () -> Unit) {
             Spacer(Modifier.height(10.dp))
 
             DisclaimerItem(
-                "Élysée 2027 ne prétend annoncer aucun résultat électoral. " +
+                "Elisée 2027 ne prétend annoncer aucun résultat électoral. " +
                 "Il donne uniquement un aperçu de l'avis de ses participants."
             )
 

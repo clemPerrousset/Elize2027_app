@@ -13,6 +13,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -59,6 +65,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -91,7 +98,11 @@ import kotlin.random.Random
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun VoteScreen(viewModel: VoteViewModel) {
+fun VoteScreen(
+    viewModel: VoteViewModel,
+    onOpenProgramme: (CandidateInfo) -> Unit,
+    onCompare: (CandidateInfo) -> Unit,
+) {
     val candidates by viewModel.candidates.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val isMockMode by viewModel.isMockMode.collectAsState()
@@ -124,7 +135,7 @@ fun VoteScreen(viewModel: VoteViewModel) {
             TopAppBar(
                 title = {
                     Text(
-                        "Élyze 2027",
+                        "Elisée 2027",
                         color = OnSurface,
                         fontWeight = FontWeight.ExtraBold,
                         fontSize = 20.sp,
@@ -189,6 +200,8 @@ fun VoteScreen(viewModel: VoteViewModel) {
                         explosionTrigger++
                         viewModel.vote(candidate.info.id)
                     },
+                    onOpenProgramme = { onOpenProgramme(candidate.info) },
+                    onCompare = { onCompare(candidate.info) },
                     modifier = Modifier.animateItem(
                         fadeInSpec = tween(300),
                         fadeOutSpec = tween(300),
@@ -239,6 +252,8 @@ fun CandidateCard(
     rank: Int,
     enabled: Boolean = true,
     onVote: (Offset) -> Unit,
+    onOpenProgramme: () -> Unit,
+    onCompare: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val partyColor = parseHexColor(candidate.info.colorHex)
@@ -311,6 +326,8 @@ fun CandidateCard(
                     )
                     Spacer(Modifier.height(2.dp))
                     PartyChip(candidate.info.party, partyColor)
+                    Spacer(Modifier.height(6.dp))
+                    CardActions(onOpenProgramme = onOpenProgramme, onCompare = onCompare)
                 }
 
                 Spacer(Modifier.width(8.dp))
@@ -430,7 +447,7 @@ private fun InitialsText(name: String, partyColor: Color, avatarSize: Dp = 68.dp
 }
 
 @Composable
-private fun PartyChip(party: String, color: Color) {
+internal fun PartyChip(party: String, color: Color) {
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(6.dp))
@@ -446,6 +463,48 @@ private fun PartyChip(party: String, color: Color) {
             overflow = TextOverflow.Ellipsis,
         )
     }
+}
+
+// Sur une ligne de préférence (sans les emojis si la place manque),
+// l'un sous l'autre seulement sur les écrans les plus étroits.
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun CardActions(onOpenProgramme: () -> Unit, onCompare: () -> Unit) {
+    val measurer = rememberTextMeasurer()
+    val density = LocalDensity.current
+    BoxWithConstraints {
+        val labelsWidth = with(density) {
+            (measurer.measure("📄 Programme", CardActionTextStyle).size.width +
+                measurer.measure("⚖️ Comparer", CardActionTextStyle).size.width).toDp()
+        }
+        // 2 boutons × (padding 2 × 8dp + bordure 2 × 1dp) + espacement 6dp
+        val withEmoji = labelsWidth + (16.dp + 2.dp) * 2 + 6.dp <= maxWidth
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            CardActionButton(if (withEmoji) "📄 Programme" else "Programme", onClick = onOpenProgramme)
+            CardActionButton(if (withEmoji) "⚖️ Comparer" else "Comparer", onClick = onCompare)
+        }
+    }
+}
+
+private val CardActionTextStyle = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+
+// Son propre clickable consomme le tap : ouvrir un programme ou comparer ne déclenche jamais de vote.
+@Composable
+private fun CardActionButton(label: String, onClick: () -> Unit) {
+    Text(
+        text = label,
+        color = OnSurface,
+        style = CardActionTextStyle,
+        maxLines = 1,
+        modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
+            .border(1.dp, OnSurfaceMuted.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(horizontal = 8.dp, vertical = 4.dp),
+    )
 }
 
 internal fun parseHexColor(hex: String): Color {

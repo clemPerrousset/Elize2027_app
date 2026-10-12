@@ -131,6 +131,14 @@ class VoteViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    // null tant que DataStore n'a pas répondu : évite un flash de l'avertissement déjà masqué.
+    val programmeDisclaimerHidden: StateFlow<Boolean?> = repository.programmeDisclaimerHidden
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    fun hideProgrammeDisclaimer() {
+        viewModelScope.launch { repository.hideProgrammeDisclaimer() }
+    }
+
     fun markOnboardingDone() {
         viewModelScope.launch { repository.markOnboardingDone() }
     }
